@@ -38,6 +38,7 @@ function do_first_time () {
     else
         unset FIRST_TIME
     fi
+
     return $___ExiT_StatuS___
 }
 
@@ -47,13 +48,22 @@ function do_git() {
     fi
 }
 
+function set_ps1() {
+    export PS1='${debian_chroot:+($debian_chroot)}''$(ps_time):$(ps_user_host):$(ps_path \\\w) $(ps_lucky_charm) $(ps_git)\n$(ps_return) $1'
+}
+
 if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
     ___color_prompt___="yes"
 else
     unset ___color_prompt___
 fi
 
-PROMPT_COMMAND='do_first_time'
+function prompt_command() {
+    do_first_time
+    set_ps1
+}
+
+PROMPT_COMMAND='prompt_command'
 
 ###############################
 function ps_time() {
@@ -142,8 +152,23 @@ function ps_return() {
 
 ###############################
 
-PS1='${debian_chroot:+($debian_chroot)}''$(ps_time):$(ps_user_host):$(ps_path \\\w) $(ps_lucky_charm) $(ps_git)\n$(ps_return) '
-
+preexec () {
+    # ISSUES:
+    #  * Should go always to the first line, so that it doesn't break when first line is wrapped
+    #  * Should not overwrite text
+    local end_time="[$(date +"%T")]"
+    printf "\033[s"                             # save cursor position
+    printf "\033[2A"                            # move cursor one line up
+    printf "\033[$((${COLUMNS}-${#end_time}))C" # move cursor at the end
+    printf "${end_time}"
+    printf "\033[u"                             # restore cursor position
+}
+preexec_invoke_exec () {
+    [ -n "$COMP_LINE" ] && return  # do nothing if completing
+    [ "$BASH_COMMAND" = "$PROMPT_COMMAND" ] && return # don't cause a preexec for $PROMPT_COMMAND
+    #preexec
+}
+trap 'preexec_invoke_exec' DEBUG
 
 #unset COLOR_BLACK
 #unset COLOR_RED
