@@ -1,0 +1,170 @@
+
+COLOR_BLACK="\e[0;30m"
+COLOR_RED="\e[0;31m"
+COLOR_GREEN="\e[0;32m"
+COLOR_BROWN="\e[0;33m"
+COLOR_BLUE="\e[1;34m"
+COLOR_PURPLE="\e[0;35m"
+COLOR_CYAN="\e[0;36m"
+COLOR_RESET="\e[0m"
+
+GCOLOR_BLACK="\[$COLOR_BLACK\]"
+GCOLOR_RED="\[$COLOR_RED\\]"
+GCOLOR_GREEN="\[$COLOR_GREEN\]"
+GCOLOR_BROWN="\[$COLOR_BROWN\]"
+GCOLOR_BLUE="\[$COLOR_BLUE\]"
+GCOLOR_PURPLE="\[$COLOR_PURPLE\]"
+GCOLOR_CYAN="\[$COLOR_CYAN\]"
+GCOLOR_RESET="\[$COLOR_RESET\]"
+
+TPUT_BOLD="$(tput bold 1)"
+TPUT_RESET="$(tput sgr0)"
+GTPUT_BOLD="\[${TPUT_BOLD}\]"
+GTPUT_RESET="\[${TPUT_RESET}\]"
+
+___ArraY___=(☺ ☻ ♥ ♦ ♣ ♠ • ◘ ○ ◙ ♂ ♀ ♪ ♫ ☼ ► ◄ ↕ ‼ ¶ § ▬ ↨ ↑ ↓ → ← ∟ ↔ ▲ ▼)
+function gen_lucky_charm() {
+    local exit_status="$?"
+    local ___IndeX___=$(( $RANDOM % ${#___ArraY___[*]} ))
+    echo "${___ArraY___[$___IndeX___]}"
+    return ${exit_status}
+}
+
+FIRST_TIME=true
+function do_first_time () {
+    local exit_status="$?"
+    if [ -z $FIRST_TIME ]; then
+        echo ""
+    else
+        unset FIRST_TIME
+    fi
+    return $___ExiT_StatuS___
+}
+
+function do_git() {
+    if [ $(set | grep "^\<__git_ps1\>" | wc -l) -ne 0 ]; then
+        __git_ps1
+    fi
+}
+
+if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
+    ___color_prompt___="yes"
+else
+    unset ___color_prompt___
+fi
+
+PROMPT_COMMAND='do_first_time'
+
+###############################
+function ps_time() {
+    local exit_status="$?"
+
+    if [ "${___color_prompt___}" = yes ]; then
+        local brown="${COLOR_BROWN}"
+        local cend="${COLOR_RESET}"
+    fi
+
+    echo -ne "${brown}[$(date +"%T")]${cend}"
+
+    return ${exit_status}
+}
+
+function ps_user_host() {
+    local exit_status="$?"
+
+    if [ "${___color_prompt___}" = yes ]; then
+        local cyan="${COLOR_CYAN}"
+        local cend="${COLOR_RESET}"
+    fi
+
+    echo -ne "${cyan}$(whoami)${cend}@${cyan}$(hostname)${cend}"
+
+    return ${exit_status}
+}
+
+function ps_path() {
+    local exit_status="$?"
+    local path=${1:-$(pwd)}
+
+    if [ "${___color_prompt___}" = yes ]; then
+        local blue="${COLOR_BLUE}"
+        local cend="${COLOR_RESET}"
+    fi
+
+    echo -ne "${blue}${path}${cend}"
+
+    return ${exit_status}
+}
+
+function ps_lucky_charm() {
+    local exit_status="$?"
+
+    if [ "${___color_prompt___}" = yes ]; then
+        local purple="${COLOR_PURPLE}"
+        local cend="${COLOR_RESET}"
+    fi
+
+    echo -ne "${purple}[$(gen_lucky_charm)]${cend}"
+
+    return ${exit_status}
+}
+
+function ps_git() {
+    local exit_status="$?"
+
+    if [ "${___color_prompt___}" = yes ]; then
+        local green="${COLOR_GREEN}"
+        local cend="${COLOR_RESET}"
+    fi
+
+    echo -ne "${green}$(do_git)${cend}"
+
+    return ${exit_status}
+}
+
+function ps_return() {
+    local exit_status="$?"
+
+    if [ "${___color_prompt___}" = yes ]; then
+        local green="${COLOR_GREEN}"
+        local red="${COLOR_RED}"
+        local cend="${COLOR_RESET}"
+    fi
+
+    if [ ${exit_status} -eq 0 ]; then
+        echo -ne "${green}(${exit_status})${cend} ${TPUT_BOLD}\$${TPUT_RESET}"
+    else
+        echo -ne "${red}(${exit_status})${cend} ${TPUT_BOLD}\$${TPUT_RESET}"
+    fi
+
+    return ${exit_status}
+}
+
+###############################
+
+PS1='${debian_chroot:+($debian_chroot)}''$(ps_time):$(ps_user_host):$(ps_path \\\w) $(ps_lucky_charm) $(ps_git)\n$(ps_return) '
+
+
+#unset COLOR_BLACK
+#unset COLOR_RED
+#unset COLOR_GREEN
+#unset COLOR_BROWN
+#unset COLOR_BLUE
+#unset COLOR_PURPLE
+#unset COLOR_CYAN
+#unset COLOR_RESET
+#
+#unset GCOLOR_BLACK
+#unset GCOLOR_RED
+#unset GCOLOR_GREEN
+#unset GCOLOR_BROWN
+#unset GCOLOR_BLUE
+#unset GCOLOR_PURPLE
+#unset GCOLOR_CYAN
+#unset GCOLOR_RESET
+#
+#unset TPUT_BOLD
+#unset TPUT_RESET
+#unset GTPUT_BOLD
+#unset GTPUT_RESET
+

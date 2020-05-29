@@ -1,0 +1,247 @@
+#
+# file: .bash_beautify
+# author: chris albrecht, @chrisalbrecht
+#
+# provides color and bash prompt customizations to integrate with svn and git.
+export dull=0
+export bright=1
+
+export fg_black=30
+export fg_red=31
+export fg_green=32
+export fg_yellow=33
+export fg_blue=34
+export fg_violet=35
+export fg_cyan=36
+export fg_white=37
+
+export fg_null=00
+
+export bg_black=40
+export bg_red=41
+export bg_green=42
+export bg_yellow=43
+export bg_blue=44
+export bg_violet=45
+export bg_cyan=46
+export bg_white=47
+
+export bg_null=00
+
+##
+# ansi escape commands
+##
+export esc="\033"
+export normal="$esc[m"
+export reset="$esc[${dull};${fg_white};${bg_null}m"
+
+##
+# shortcuts for colored text ( bright and fg only )
+##
+
+# dull text
+export black="$esc[${dull};${fg_black}m"
+export red="$esc[${dull};${fg_red}m"
+export green="$esc[${dull};${fg_green}m"
+export yellow="$esc[${dull};${fg_yellow}m"
+export blue="$esc[${dull};${fg_blue}m"
+export violet="$esc[${dull};${fg_violet}m"
+export cyan="$esc[${dull};${fg_cyan}m"
+export white="$esc[${dull};${fg_white}m"
+
+# bright text
+export bright_black="$esc[${bright};${fg_black}m"
+export bright_red="$esc[${bright};${fg_red}m"
+export bright_green="$esc[${bright};${fg_green}m"
+export bright_yellow="$esc[${bright};${fg_yellow}m"
+export bright_blue="$esc[${bright};${fg_blue}m"
+export bright_violet="$esc[${bright};${fg_violet}m"
+export bright_cyan="$esc[${bright};${fg_cyan}m"
+export bright_white="$esc[${bright};${fg_white}m"
+
+# rev text as an example
+export rev_cyan="$esc[${dull};${bg_white};${bg_cyan}m"
+export rev_red="$esc[${dull};${fg_yellow}; ${bg_red}m"
+
+##
+# parse the git and svn branches we may be on
+##
+function vcs_branch {
+    local git=$(git_branch)
+    local svn=$(svn_branch)
+    if [ -n "$git" ]; then
+        local branch="${green}$git${white}"
+    fi
+    if [ -n "$svn" ]; then
+        if [ -n "$git" ]; then
+            branch="$branch|${yellow}$svn${white}"
+        else
+            branch="${yellow}$svn${white}"
+        fi
+    fi
+    if [ -n "$branch" ]; then
+        echo -e "($branch${white})"
+    fi
+}
+
+##
+# get the current git branch
+##
+function git_branch {
+    ref=$(git symbolic-ref head 2> /dev/null) || return
+    echo ${ref#refs/heads/}
+}
+
+##
+# get the current svn branch
+##
+function svn_branch {
+    if [ ! -d .svn ]; then
+        exit 1
+    fi
+
+    # get the current url of the svn repo
+    url=`svn info --xml | fgrep "<url>"`
+
+    # strip the tags
+    url=${url/<url>/}
+    url=${url/<\/url>/}
+
+    # find the branches directory
+    if [[ "$url" == */trunk ]]; then
+        dir=${url//\/trunk*/}
+    fi
+    if [[ "$url" == */tags/* ]]; then
+        dir=${url//\/tags*/}
+    fi
+    if [[ "$url" == */branches/* ]]; then
+        dir=${url//\/branches*\/*/}
+    fi
+    dir="$dir/branches"
+
+    # return the branch name
+    if [[ "$url" == */trunk* ]]; then
+        echo 'trunk'
+    elif [[ "$url" == */branches/* ]]; then
+        echo $url | sed -e 's#^'"$dir/"'##g' | sed -e 's#/.*$##g' | awk '{print ""$1"" }'
+    fi
+ }
+
+hostname=`hostname`
+if [[ "$hostname" == build_ubuntu ]]; then
+    # set the prompt pattern
+    export ps1="${bright_cyan}[${cyan}\u${bright_white}@${green}${hostname^^}${white}\$(vcs_branch)${white}: \w${bright_cyan}]${normal}\$ ${reset}"
+    else
+    export ps1="${bright_cyan}[${cyan}\u${bright_white}@${cyan}\h${white}\$(vcs_branch)${white}: \w${bright_cyan}]${normal}\$ ${reset}"
+fi
+
+DFLT_BLACK="\e[0;30m"
+DFLT_RED="\e[0;31m"
+DFLT_GREEN="\e[0;32m"
+DFLT_BROWN="\e[0;33m"
+DFLT_BLUE="\e[1;34m"
+DFLT_PURPLE="\e[0;35m"
+DFLT_CYAN="\e[0;36m"
+DFLT_END="\e[0m"
+
+CLR_BLACK="\[$DFLT_BLACK\]"
+CLR_RED="\[$DFLT_RED\]"
+CLR_GREEN="\[$DFLT_GREEN\]"
+CLR_BROWN="\[$DFLT_BROWN\]"
+CLR_BLUE="\[$DFLT_BLUE\]"
+CLR_PURPLE="\[$DFLT_PURPLE\]"
+CLR_CYAN="\[$DFLT_CYAN\]"
+CLR_END="\[$DFLT_END\]"
+
+TPUT_BOLD="\[$(tput bold 1)\]"
+TPUT_DFLT="\[$(tput sgr0)\]"
+
+___ArraY___=(☺ ☻ ♥ ♦ ♣ ♠ • ◘ ○ ◙ ♂ ♀ ♪ ♫ ☼ ► ◄ ↕ ‼ ¶ § ▬ ↨ ↑ ↓ → ← ∟ ↔ ▲ ▼ ☠)
+function gen_lucky_charm () {
+    ___ExiT_StatuS___=$?
+    ___IndeX___=$(( $RANDOM % ${#___ArraY___[*]} ))
+    echo "${___ArraY___[$___IndeX___]}"
+    return $___ExiT_StatuS___
+}
+
+FIRST_TIME=true
+function do_first_time () {
+    ___ExiT_StatuS___=$?
+    if [ -z $FIRST_TIME ]; then
+        echo ""
+    else
+        unset FIRST_TIME
+#        cmatrix -s
+    fi
+    return $___ExiT_StatuS___
+}
+
+PROMPT_COMMAND='do_first_time'
+
+RET_PRINT_CLR='$(___ExiT_StatuS___=$?; if [ $___ExiT_StatuS___ -eq 0 ]; then echo -ne "'"${CLR_GREEN}"'($___ExiT_StatuS___) '"${CLR_END}"'" ; else echo -ne "'"${CLR_RED}"'($___ExiT_StatuS___) '"${CLR_END}"'" ; fi ; $(exit $___ExiT_StatuS___); unset ___ExiT_StatuS___)'
+RET_PRINT_NOC='$(___ExiT_StatuS___=$?; echo -ne "($___ExiT_StatuS___) "; $(exit $___ExiT_StatuS___); unset ___ExiT_StatuS___)'
+
+
+force_color_prompt=yes
+
+if [ -n "$force_color_prompt" ]; then
+    if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
+	# We have color support; assume it's compliant with Ecma-48
+	# (ISO/IEC-6429). (Lack of such support is extremely rare, and such
+	# a case would tend to support setf rather than setaf.)
+	color_prompt=yes
+    else
+	color_prompt=
+    fi
+fi
+
+if [ "$color_prompt" = yes ]; then
+    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+    PS1='${debian_chroot:+($debian_chroot)}'"${CLR_BROWN}[\t]${CLR_END}:${CLR_CYAN}\u@\h${CLR_END}:${CLR_BLUE}\w${CLR_END} ${CLR_PURPLE}"'[$(gen_lucky_charm)]'"${CLR_END}\n${RET_PRINT_CLR}${TPUT_BOLD}\$ ${TPUT_DFLT}"
+else
+    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+    PS1='${debian_chroot:+($debian_chroot)}'"[\t]:\u@\h:\w\n${RET_PRINT_NOC}\$ "
+fi
+unset color_prompt force_color_prompt
+
+
+# If this is an xterm set the title to user@host:dir
+case "$TERM" in
+xterm*|rxvt*)
+    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+    ;;
+*)
+    ;;
+esac
+
+
+unset DFLT_BLACK
+unset DFLT_RED
+unset DFLT_GREEN
+unset DFLT_BROWN
+unset DFLT_BLUE
+unset DFLT_PURPLE
+unset DFLT_CYAN
+unset DFLT_END
+
+unset CLR_BLACK
+unset CLR_RED
+unset CLR_GREEN
+unset CLR_BROWN
+unset CLR_BLUE
+unset CLR_PURPLE
+unset CLR_CYAN
+unset CLR_END
+
+unset TPUT_BOLD
+unset TPUT_DFLT
+unset RET_PRINT_CLR
+unset RET_PRINT_NOC
+
+######################################################################
+# SubVersion configurations
+
+## Set the editor that SubVersion will use
+EDITOR=vim
+
