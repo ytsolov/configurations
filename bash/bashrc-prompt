@@ -1,26 +1,37 @@
 
-COLOR_BLACK="\e[0;30m"
-COLOR_RED="\e[0;31m"
-COLOR_GREEN="\e[0;32m"
-COLOR_BROWN="\e[0;33m"
-COLOR_BLUE="\e[1;34m"
-COLOR_PURPLE="\e[0;35m"
-COLOR_CYAN="\e[0;36m"
-COLOR_RESET="\e[0m"
+RAW_COLOR_BLACK="\e[0;30m"
+RAW_COLOR_RED="\e[0;31m"
+RAW_COLOR_GREEN="\e[0;32m"
+RAW_COLOR_BROWN="\e[0;33m"
+RAW_COLOR_BLUE="\e[1;34m"
+RAW_COLOR_PURPLE="\e[0;35m"
+RAW_COLOR_CYAN="\e[0;36m"
+RAW_COLOR_RESET="\e[0m"
 
-GCOLOR_BLACK="\[$COLOR_BLACK\]"
-GCOLOR_RED="\[$COLOR_RED\\]"
-GCOLOR_GREEN="\[$COLOR_GREEN\]"
-GCOLOR_BROWN="\[$COLOR_BROWN\]"
-GCOLOR_BLUE="\[$COLOR_BLUE\]"
-GCOLOR_PURPLE="\[$COLOR_PURPLE\]"
-GCOLOR_CYAN="\[$COLOR_CYAN\]"
-GCOLOR_RESET="\[$COLOR_RESET\]"
+GCOLOR_BLACK="\[${RAW_COLOR_BLACK}\]"
+GCOLOR_RED="\[${RAW_COLOR_RED}\]"
+GCOLOR_GREEN="\[${RAW_COLOR_GREEN}\]"
+GCOLOR_BROWN="\[${RAW_COLOR_BROWN}\]"
+GCOLOR_BLUE="\[${RAW_COLOR_BLUE}\]"
+GCOLOR_PURPLE="\[${RAW_COLOR_PURPLE}\]"
+GCOLOR_CYAN="\[${RAW_COLOR_CYAN}\]"
+GCOLOR_RESET="\[${RAW_COLOR_RESET}\]"
+
+FCOLOR_BLACK="\001${RAW_COLOR_BLACK}\002"
+FCOLOR_RED="\001${RAW_COLOR_RED}\002"
+FCOLOR_GREEN="\001${RAW_COLOR_GREEN}\002"
+FCOLOR_BROWN="\001${RAW_COLOR_BROWN}\002"
+FCOLOR_BLUE="\001${RAW_COLOR_BLUE}\002"
+FCOLOR_PURPLE="\001${RAW_COLOR_PURPLE}\002"
+FCOLOR_CYAN="\001${RAW_COLOR_CYAN}\002"
+FCOLOR_RESET="\001${RAW_COLOR_RESET}\002"
 
 TPUT_BOLD="$(tput bold 1)"
 TPUT_RESET="$(tput sgr0)"
 GTPUT_BOLD="\[${TPUT_BOLD}\]"
 GTPUT_RESET="\[${TPUT_RESET}\]"
+FTPUT_BOLD="\001${TPUT_BOLD}\002"
+FTPUT_RESET="\001${TPUT_RESET}\002"
 
 ___ArraY___=(☺ ☻ ♥ ♦ ♣ ♠ • ◘ ○ ◙ ♂ ♀ ♪ ♫ ☼ ► ◄ ↕ ‼ ¶ § ▬ ↨ ↑ ↓ → ← ∟ ↔ ▲ ▼)
 function gen_lucky_charm() {
@@ -49,7 +60,7 @@ function do_git() {
 }
 
 function set_ps1() {
-    export PS1='${debian_chroot:+($debian_chroot)}''$(ps_time):$(ps_user_host):$(ps_path \\\w) $(ps_lucky_charm) $(ps_git)\n$(ps_return) $1'
+    export PS1='${debian_chroot:+($debian_chroot)}''$(ps_time):$(ps_user_host):$(ps_path \\\w) $(ps_lucky_charm) $(ps_git)\n$(ps_return) '
 }
 
 if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
@@ -70,8 +81,8 @@ function ps_time() {
     local exit_status="$?"
 
     if [ "${___color_prompt___}" = yes ]; then
-        local brown="${COLOR_BROWN}"
-        local cend="${COLOR_RESET}"
+        local brown="${FCOLOR_BROWN}"
+        local cend="${FCOLOR_RESET}"
     fi
 
     echo -ne "${brown}[$(date +"%T")]${cend}"
@@ -83,8 +94,8 @@ function ps_user_host() {
     local exit_status="$?"
 
     if [ "${___color_prompt___}" = yes ]; then
-        local cyan="${COLOR_CYAN}"
-        local cend="${COLOR_RESET}"
+        local cyan="${FCOLOR_CYAN}"
+        local cend="${FCOLOR_RESET}"
     fi
 
     echo -ne "${cyan}$(whoami)${cend}@${cyan}$(hostname)${cend}"
@@ -97,8 +108,8 @@ function ps_path() {
     local path=${1:-$(pwd)}
 
     if [ "${___color_prompt___}" = yes ]; then
-        local blue="${COLOR_BLUE}"
-        local cend="${COLOR_RESET}"
+        local blue="${FCOLOR_BLUE}"
+        local cend="${FCOLOR_RESET}"
     fi
 
     echo -ne "${blue}${path}${cend}"
@@ -110,8 +121,8 @@ function ps_lucky_charm() {
     local exit_status="$?"
 
     if [ "${___color_prompt___}" = yes ]; then
-        local purple="${COLOR_PURPLE}"
-        local cend="${COLOR_RESET}"
+        local purple="${FCOLOR_PURPLE}"
+        local cend="${FCOLOR_RESET}"
     fi
 
     echo -ne "${purple}[$(gen_lucky_charm)]${cend}"
@@ -123,8 +134,8 @@ function ps_git() {
     local exit_status="$?"
 
     if [ "${___color_prompt___}" = yes ]; then
-        local green="${COLOR_GREEN}"
-        local cend="${COLOR_RESET}"
+        local green="${FCOLOR_GREEN}"
+        local cend="${FCOLOR_RESET}"
     fi
 
     echo -ne "${green}$(do_git)${cend}"
@@ -136,15 +147,15 @@ function ps_return() {
     local exit_status="$?"
 
     if [ "${___color_prompt___}" = yes ]; then
-        local green="${COLOR_GREEN}"
-        local red="${COLOR_RED}"
-        local cend="${COLOR_RESET}"
+        local green="${FCOLOR_GREEN}"
+        local red="${FCOLOR_RED}"
+        local cend="${FCOLOR_RESET}"
     fi
 
     if [ ${exit_status} -eq 0 ]; then
-        echo -ne "${green}(${exit_status})${cend} ${TPUT_BOLD}\$${TPUT_RESET}"
+        echo -ne "${green}(${exit_status})${cend} ${FTPUT_BOLD}\$${FTPUT_RESET}"
     else
-        echo -ne "${red}(${exit_status})${cend} ${TPUT_BOLD}\$${TPUT_RESET}"
+        echo -ne "${red}(${exit_status})${cend} ${FTPUT_BOLD}\$${FTPUT_RESET}"
     fi
 
     return ${exit_status}
@@ -170,14 +181,14 @@ preexec_invoke_exec () {
 }
 trap 'preexec_invoke_exec' DEBUG
 
-#unset COLOR_BLACK
-#unset COLOR_RED
-#unset COLOR_GREEN
-#unset COLOR_BROWN
-#unset COLOR_BLUE
-#unset COLOR_PURPLE
-#unset COLOR_CYAN
-#unset COLOR_RESET
+#unset RAW_COLOR_BLACK
+#unset RAW_COLOR_RED
+#unset RAW_COLOR_GREEN
+#unset RAW_COLOR_BROWN
+#unset RAW_COLOR_BLUE
+#unset RAW_COLOR_PURPLE
+#unset RAW_COLOR_CYAN
+#unset RAW_COLOR_RESET
 #
 #unset GCOLOR_BLACK
 #unset GCOLOR_RED
@@ -188,8 +199,19 @@ trap 'preexec_invoke_exec' DEBUG
 #unset GCOLOR_CYAN
 #unset GCOLOR_RESET
 #
+#unset FCOLOR_BLACK
+#unset FCOLOR_RED
+#unset FCOLOR_GREEN
+#unset FCOLOR_BROWN
+#unset FCOLOR_BLUE
+#unset FCOLOR_PURPLE
+#unset FCOLOR_CYAN
+#unset FCOLOR_RESET
+#
 #unset TPUT_BOLD
 #unset TPUT_RESET
 #unset GTPUT_BOLD
 #unset GTPUT_RESET
+#unset FTPUT_BOLD
+#unset FTPUT_RESET
 
