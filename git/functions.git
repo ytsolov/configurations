@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+
+function git_submodule_exec() {
+	local submodule="${1}"
+	if [ $(echo "${submodule}" | wc -w) -eq 0 ]; then
+		return 1
+	fi
+	(
+		cd "${submodule}"
+		eval "${@:2}"
+	)
+	return ${?}
+}
+export -f git_submodule_exec
+
+function git_branch_local() {
+	local branch_selected="$(git branch | grep "^\*\s")"
+	local branch="${branch_selected:2}"
+	echo "${branch}"
+	return 0
+}
+export -f git_branch_local
+
+function git_branch_submodule_local() {
+	local submodule="$1"
+	if [ $(echo "${submodule}" | wc -w) -eq 0 ]; then
+		echo ""
+		return 1
+	fi
+	local branch="$(git_submodule_exec ${submodule} git_branch_local)"
+	echo "${branch}"
+	return 0
+}
+export -f git_branch_submodule_local
+
+function git_branch_submodule_conf() {
+	local submodule="$1"
+	if [ $(echo "${submodule}" | wc -w) -eq 0 ]; then
+		echo ""
+		return 1
+	fi
+	local branch_line="$(git config --list --file .gitmodules | grep "submodule.${submodule}.branch")"
+	if [ $(echo "${branch_line}" | wc -w) -eq 0 ]; then
+		echo ""
+		return 2
+	fi
+	local branch="$(echo ${branch_line} | awk '{split($0,array,"=")} END{print array[2]}')"
+	echo "${branch}"
+	return 0
+}
+export -f git_branch_submodule_conf
+
+function git_branch_state() {
+	local branch_local=${1:-'@'}
+	local branch_upstream=${1:-''}@{u}
+	local local
+	local remote
+	local base
+	local message
+	local code=0
+
+	local="$(git rev-parse "${branch_local}" 2>/dev/null)"; local ret1=$?
+	remote="$(git rev-parse "${branch_upstream}" 2>/dev/null)"; local ret2=$?
+	base="$(git merge-base "${branch_local}" "${branch_upstream}" 2>/dev/null)"; local ret3=$?
+
+	if [ ${ret1} -eq 0 ] && [ ${ret2} -eq 0 ] && [ ${ret3} -eq 0 ]; then
+		if [ "${local}" = "${remote}" ]; then
+			message="Up-to-date"
+			code=0
+		elif [ "${local}" = "${base}" ]; then
+			message="Need to pull"
+			code=1
+		elif [ "${remote}" = "${base}" ]; then
+			message="Need to push"
+			code=2
+		else
+			message="Diverged"
+			code=3
+		fi
+	else
+		if [ "(HEAD detached at" = "${branch_local:0:17}" ]; then
+			message="Detached"
+			code=5
+		else
+			message="Undefined"
+			code=5
+		fi
+	fi
+
+	echo "${message}"
+	return ${code}
+}
+export -f git_branch_state
+
