@@ -195,7 +195,13 @@ preexec () {
 preexec_invoke_exec () {
     [ -n "$COMP_LINE" ] && return  # do nothing if completing
     [ "$BASH_COMMAND" = "$PROMPT_COMMAND" ] && return # don't cause a preexec for $PROMPT_COMMAND
-    preexec
+    case "$-" in
+        *s*)    # Is command read from stdin or not
+            preexec
+            ;;
+        *)
+            ;;
+    esac
 }
 trap 'preexec_invoke_exec' DEBUG
 
