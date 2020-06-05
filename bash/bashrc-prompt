@@ -101,10 +101,12 @@ PROMPT_COMMAND='prompt_command'
 ###############################
 function ps_time() {
     local exit_status="$?"
+    local brown
+    local cend
 
     if [ "${___color_prompt___}" = yes ]; then
-        local brown="${FCOLOR_BROWN}"
-        local cend="${FCOLOR_RESET}"
+        brown="${FCOLOR_BROWN}"
+        cend="${FCOLOR_RESET}"
     fi
 
     echo -ne "${brown}[$(fdate)]${cend}"
@@ -129,10 +131,12 @@ function ps_ssh() {
 
 function ps_user_host() {
     local exit_status="$?"
+    local cyan
+    local cend
 
     if [ "${___color_prompt___}" = yes ]; then
-        local cyan="${FCOLOR_CYAN}"
-        local cend="${FCOLOR_RESET}"
+        cyan="${FCOLOR_CYAN}"
+        cend="${FCOLOR_RESET}"
     fi
 
     echo -ne "${cyan}$(whoami)${cend}@${cyan}$(hostname)${cend}$(ps_ssh)"
@@ -143,10 +147,12 @@ function ps_user_host() {
 function ps_path() {
     local exit_status="$?"
     local path=${1:-$(pwd)}
+    local blue
+    local cend
 
     if [ "${___color_prompt___}" = yes ]; then
-        local blue="${FCOLOR_BLUE}"
-        local cend="${FCOLOR_RESET}"
+        blue="${FCOLOR_BLUE}"
+        cend="${FCOLOR_RESET}"
     fi
 
     echo -ne "${blue}${path}${cend}"
@@ -156,10 +162,12 @@ function ps_path() {
 
 function ps_lucky_charm() {
     local exit_status="$?"
+    local purple
+    local cend
 
     if [ "${___color_prompt___}" = yes ]; then
-        local purple="${FCOLOR_PURPLE}"
-        local cend="${FCOLOR_RESET}"
+        purple="${FCOLOR_PURPLE}"
+        cend="${FCOLOR_RESET}"
     fi
 
     echo -ne "${purple}[$(gen_lucky_charm)]${cend}"
@@ -169,10 +177,12 @@ function ps_lucky_charm() {
 
 function ps_git() {
     local exit_status="$?"
+    local green
+    local cend
 
     if [ "${___color_prompt___}" = yes ]; then
-        local green="${FCOLOR_GREEN}"
-        local cend="${FCOLOR_RESET}"
+        green="${FCOLOR_GREEN}"
+        cend="${FCOLOR_RESET}"
     fi
 
     echo -ne "${green}$(do_git)${cend}"
@@ -182,11 +192,14 @@ function ps_git() {
 
 function ps_return() {
     local exit_status="$?"
+    local green
+    local red
+    local cend
 
     if [ "${___color_prompt___}" = yes ]; then
-        local green="${FCOLOR_GREEN}"
-        local red="${FCOLOR_RED}"
-        local cend="${FCOLOR_RESET}"
+        green="${FCOLOR_GREEN}"
+        red="${FCOLOR_RED}"
+        cend="${FCOLOR_RESET}"
     fi
 
     if [ ${exit_status} -eq 0 ]; then
@@ -201,6 +214,15 @@ function ps_return() {
 ###############################
 
 preexec () {
+    local end_time="$(fdate)"
+    local blue
+    local cend
+
+    if [ "${___color_prompt___}" = yes ]; then
+        blue="${FCOLOR_BLUE}"
+        cend="${FCOLOR_RESET}"
+    fi
+
     # ISSUES:
     #  * Should go always to the first line, so that it doesn't break when first line is wrapped
     #  * Should not overwrite text
@@ -211,18 +233,11 @@ preexec () {
     #printf "${FCOLOR_RED}${end_time}${FCOLOR_RESET}"
     #printf "\033[u"                             # restore cursor position
 
-    #local end_time="[$(fdate)]"
-    #printf "\033[s"                             # save cursor position
-    #printf "\033[2A"                            # move cursor one line up
-    #printf "\033[-1C" # move cursor at the end
-    #printf "${FCOLOR_RED}${end_time}${FCOLOR_RESET}"
-    #printf "\033[u"                             # restore cursor position
-
-    local end_time="$(fdate)"
+    # Overwrite existing time with the time of command execution
     printf "\033[s"                             # save cursor position
     printf "\033[2A"                            # move cursor one line up
     printf "\033[0C" # move cursor at the end
-    printf "${FCOLOR_BLUE}${end_time}${FCOLOR_RESET}"
+    printf "${blue}${end_time}${cend}"
     printf "\033[u"                             # restore cursor position
 }
 preexec_invoke_exec () {
