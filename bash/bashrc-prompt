@@ -167,17 +167,31 @@ preexec () {
     # ISSUES:
     #  * Should go always to the first line, so that it doesn't break when first line is wrapped
     #  * Should not overwrite text
-    local end_time="[$(date +"%T")]"
+    #local end_time="[$(date +"%T")]"
+    #printf "\033[s"                             # save cursor position
+    #printf "\033[2A"                            # move cursor one line up
+    #printf "\033[$((${COLUMNS}-${#end_time}))C" # move cursor at the end
+    #printf "${FCOLOR_RED}${end_time}${FCOLOR_RESET}"
+    #printf "\033[u"                             # restore cursor position
+
+    #local end_time="[$(date +"%T")]"
+    #printf "\033[s"                             # save cursor position
+    #printf "\033[2A"                            # move cursor one line up
+    #printf "\033[-1C" # move cursor at the end
+    #printf "${FCOLOR_RED}${end_time}${FCOLOR_RESET}"
+    #printf "\033[u"                             # restore cursor position
+
+    local end_time="$(date +"%T")"
     printf "\033[s"                             # save cursor position
     printf "\033[2A"                            # move cursor one line up
-    printf "\033[$((${COLUMNS}-${#end_time}))C" # move cursor at the end
-    printf "${end_time}"
+    printf "\033[0C" # move cursor at the end
+    printf "${FCOLOR_BLUE}${end_time}${FCOLOR_RESET}"
     printf "\033[u"                             # restore cursor position
 }
 preexec_invoke_exec () {
     [ -n "$COMP_LINE" ] && return  # do nothing if completing
     [ "$BASH_COMMAND" = "$PROMPT_COMMAND" ] && return # don't cause a preexec for $PROMPT_COMMAND
-    #preexec
+    preexec
 }
 trap 'preexec_invoke_exec' DEBUG
 
