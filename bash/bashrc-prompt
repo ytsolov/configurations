@@ -1,4 +1,13 @@
 
+#Black        0;30     Dark Gray     1;30
+#Red          0;31     Light Red     1;31
+#Green        0;32     Light Green   1;32
+#Brown/Orange 0;33     Yellow        1;33
+#Blue         0;34     Light Blue    1;34
+#Purple       0;35     Light Purple  1;35
+#Cyan         0;36     Light Cyan    1;36
+#Light Gray   0;37     White         1;37
+
 RAW_COLOR_BLACK="\e[0;30m"
 RAW_COLOR_RED="\e[0;31m"
 RAW_COLOR_GREEN="\e[0;32m"
@@ -6,6 +15,9 @@ RAW_COLOR_BROWN="\e[0;33m"
 RAW_COLOR_BLUE="\e[1;34m"
 RAW_COLOR_PURPLE="\e[0;35m"
 RAW_COLOR_CYAN="\e[0;36m"
+RAW_COLOR_WHITE="\e[1;30m"
+RAW_COLOR_YELLOW="\e[1;33m"
+RAW_COLOR_LIGHT_CYAN="\e[1;36m"
 RAW_COLOR_RESET="\e[0m"
 
 GCOLOR_BLACK="\[${RAW_COLOR_BLACK}\]"
@@ -15,6 +27,9 @@ GCOLOR_BROWN="\[${RAW_COLOR_BROWN}\]"
 GCOLOR_BLUE="\[${RAW_COLOR_BLUE}\]"
 GCOLOR_PURPLE="\[${RAW_COLOR_PURPLE}\]"
 GCOLOR_CYAN="\[${RAW_COLOR_CYAN}\]"
+GCOLOR_WHITE="\[${RAW_COLOR_WHITE}\]"
+GCOLOR_YELLOW="\[${RAW_COLOR_YELLOW}\]"
+GCOLOR_LIGHT_CYAN="\[${RAW_COLOR_CYAN_LIGHT}\]"
 GCOLOR_RESET="\[${RAW_COLOR_RESET}\]"
 
 FCOLOR_BLACK="\001${RAW_COLOR_BLACK}\002"
@@ -24,6 +39,9 @@ FCOLOR_BROWN="\001${RAW_COLOR_BROWN}\002"
 FCOLOR_BLUE="\001${RAW_COLOR_BLUE}\002"
 FCOLOR_PURPLE="\001${RAW_COLOR_PURPLE}\002"
 FCOLOR_CYAN="\001${RAW_COLOR_CYAN}\002"
+FCOLOR_WHITE="\001${RAW_COLOR_WHITE}\002"
+FCOLOR_YELLOW="\001${RAW_COLOR_YELLOW}\002"
+FCOLOR_LIGHT_CYAN="\001${RAW_COLOR_CYAN_LIGHT}\002"
 FCOLOR_RESET="\001${RAW_COLOR_RESET}\002"
 
 TPUT_BOLD="$(tput bold 1)"
@@ -94,6 +112,21 @@ function ps_time() {
     return ${exit_status}
 }
 
+function ps_ssh() {
+    if [ $(echo "${SSH_CLIENT}" | wc -w) -ne 0 ]; then
+        if [ "${___color_prompt___}" = yes ]; then
+            local cyan="${FCOLOR_CYAN}"
+            local cend="${FCOLOR_RESET}"
+        fi
+
+        set -- ${SSH_CLIENT}
+        local ripaddr=${1}
+        local rport=${2}
+        local lport=${3}
+        echo "{${cyan}ssh ${ripaddr}:${rport}${cend}}"
+    fi
+}
+
 function ps_user_host() {
     local exit_status="$?"
 
@@ -102,7 +135,7 @@ function ps_user_host() {
         local cend="${FCOLOR_RESET}"
     fi
 
-    echo -ne "${cyan}$(whoami)${cend}@${cyan}$(hostname)${cend}"
+    echo -ne "${cyan}$(whoami)${cend}@${cyan}$(hostname)${cend}$(ps_ssh)"
 
     return ${exit_status}
 }
@@ -212,6 +245,9 @@ trap 'preexec_invoke_exec' DEBUG
 #unset RAW_COLOR_BLUE
 #unset RAW_COLOR_PURPLE
 #unset RAW_COLOR_CYAN
+#unset RAW_COLOR_WHITE
+#unset RAW_COLOR_YELLOW
+#unset RAW_COLOR_LIGHT_CYAN
 #unset RAW_COLOR_RESET
 #
 #unset GCOLOR_BLACK
@@ -221,6 +257,9 @@ trap 'preexec_invoke_exec' DEBUG
 #unset GCOLOR_BLUE
 #unset GCOLOR_PURPLE
 #unset GCOLOR_CYAN
+#unset GCOLOR_WHITE
+#unset GCOLOR_YELLOW
+#unset GCOLOR_LIGHT_CYAN
 #unset GCOLOR_RESET
 #
 #unset FCOLOR_BLACK
@@ -230,6 +269,9 @@ trap 'preexec_invoke_exec' DEBUG
 #unset FCOLOR_BLUE
 #unset FCOLOR_PURPLE
 #unset FCOLOR_CYAN
+#unset FCOLOR_WHITE
+#unset FCOLOR_YELLOW
+#unset FCOLOR_LIGHT_CYAN
 #unset FCOLOR_RESET
 #
 #unset TPUT_BOLD
