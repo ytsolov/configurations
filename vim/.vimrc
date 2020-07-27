@@ -104,13 +104,18 @@ for line in split(scriptnames_output, "\n")
     endif
 endfor
 unlet scriptnames_output
-
 let plugin_vundle=0
 for [key, value] in items(mscripts)
     if value =~ 'Vundle.vim'
         let plugin_vundle=1
     endif
 endfor
+if plugin_vundle == 0
+    "This is in case of first time adding vundle
+    if isdirectory($HOME . "/.vim/bundle/Vundle.vim")
+        let plugin_vundle=1
+    endif
+endif
 
 let s:use_vundle = plugin_vundle
 if s:use_vundle == 1
@@ -122,7 +127,8 @@ if s:use_vundle == 1
     " alternatively, pass a path where Vundle should install plugins
     "call vundle#begin('~/some/path/here')
 
-    Plugin 'file://$HOME/.vim/bundle/YouCompleteMe'
+    "#Plugin 'file://$HOME/.vim/bundle/YouCompleteMe'
+    Plugin 'https://github.com/ycm-core/YouCompleteMe.git'
 
     "" " let Vundle manage Vundle, required
     "" Plugin 'gmarik/Vundle.vim'
