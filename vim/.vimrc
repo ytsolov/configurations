@@ -122,7 +122,7 @@ if s:use_vundle == 1
     filetype off                  " required
 
     " set the runtime path to include Vundle and initialize
-    set rtp+=~/.vim/bundle/Vundle.vim
+    set rtp+=$HOME/.vim/bundle/Vundle.vim
     call vundle#begin()
     " alternatively, pass a path where Vundle should install plugins
     "call vundle#begin('~/some/path/here')
@@ -153,6 +153,13 @@ if s:use_vundle == 1
     call vundle#end()            " required
 endif
 
+if executable("go")
+    " Execute: go get -u golang.org/x/lint/golint
+    if isdirectory($GOPATH . "/src/golang.org/x/lint/misc/vim")
+        set rtp+=$GOPATH/src/golang.org/x/lint/misc/vim
+        autocmd BufWritePost,FileWritePost *.go execute 'Lint' | cwindow
+    endif
+endif
 
 
 " This switches on three very clever mechanisms:
@@ -240,6 +247,8 @@ if s:use_youcompleteme == 1
     nnoremap <leader>parent :YcmCompleter GetParent<CR>
     nnoremap <leader>fix    :YcmCompleter FixIt<CR>
     nnoremap <leader>format :YcmCompleter Format<CR>
+
+    autocmd BufWritePre,FileWritePre *.go execute 'YcmCompleter Format' | cwindow
 endif
 
 let s:use_pydiction=0
