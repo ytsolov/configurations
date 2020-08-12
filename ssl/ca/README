@@ -1,0 +1,56 @@
+################################################################################
+## info
+COMPANY="xxx"
+COMPANY_LTD="${COMPANY} Ltd"
+SSL_DIR_ROOT="/tmp/${COMPANY}"
+SSL_DIR_CA_ROOT="${SSL_DIR_ROOT}/root"
+SSL_DIR_CA_INTER="${SSL_DIR_ROOT}/inter"
+SSL_DIR_CA_ISSUED="${SSL_DIR_ROOT}/issued"
+
+################################################################################
+## ssl-ca-root-pair.sh
+
+$ ssl-ca-root-pair.sh "${SSL_DIR_CA_ROOT}" "ca-${COMPANY}-root"
+
+PASSWORD: ca-${COMPANY}-root
+
+Country Name (2 letter code) [XX]:BG
+State or Province Name []:Bulgaria
+Locality Name []:
+Organization Name []:${COMPANY_LTD}
+Organizational Unit Name []:${COMPANY_LTD} Certificate Authority
+Common Name []:${COMPANY_LTD} Root CA
+Email Address []:
+
+
+################################################################################
+## ssl-ca-intermediate-pair.sh
+
+$ ssl-ca-intermediate-pair.sh "${SSL_DIR_CA_ROOT}" "ca-${COMPANY}-root" "${SSL_DIR_CA_INTER}" "ca-${COMPANY}"
+
+PASSWORD: ca-${COMPANY}
+
+Country Name (2 letter code) [XX]:BG
+State or Province Name []:Bulgaria
+Locality Name []:
+Organization Name []:${COMPANY_LTD}
+Organizational Unit Name []:${COMPANY_LTD} Certificate Authority
+Common Name []:${COMPANY_LTD} Intermediate CA
+Email Address []:
+
+
+################################################################################
+## ssl-issue-pair.sh
+
+$ ssl-issue-pair.sh "${SSL_DIR_CA_INTER}" "ca-${COMPANY}" "${SSL_DIR_CA_ISSUED}" "ad"
+
+PASSWORD: ${COMPANY}-ad
+
+Country Name (2 letter code) [XX]:BG
+State or Province Name (full name) []:Bulgaria
+Locality Name []:
+Organization Name [YT]:${COMPANY_LTD}
+Organizational Unit Name []:${COMPANY_AD} SOMETHING
+Common Name []:www.${COMPANY}.com
+Email Address []:
+
