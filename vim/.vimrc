@@ -248,7 +248,9 @@ if s:use_youcompleteme == 1
     nnoremap <leader>fix    :YcmCompleter FixIt<CR>
     nnoremap <leader>format :YcmCompleter Format<CR>
 
-    autocmd BufWritePre,FileWritePre *.go execute 'YcmCompleter Format' | cwindow
+    let s:gowinview={}
+    autocmd BufWritePre *.go let s:gowinview=winsaveview() | execute 'YcmCompleter Format'
+    autocmd BufWritePost *.go cwindow | call winrestview(s:gowinview)
 endif
 
 let s:use_pydiction=0
