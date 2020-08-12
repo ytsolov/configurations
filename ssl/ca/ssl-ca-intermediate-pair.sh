@@ -42,21 +42,30 @@ else
     SSL_NAME="${4}"
     SSL_KEY_NAME="${SSL_NAME}.key.pem"
     SSL_CSR_NAME="${SSL_NAME}.csr.pem"
-    SSL_CERT_NAME="${SSL_NAME}.cert.pem"
+    SSL_CERT_PEM_NAME="${SSL_NAME}.cert.pem"
+    SSL_CERT_DER_NAME="${SSL_NAME}.cert.der"
+    SSL_CERT_CRT_NAME="${SSL_NAME}.cert.crt"
+    SSL_CERT_CER_NAME="${SSL_NAME}.cert.cer"
+    SSL_CERT_PKCS12_NAME="${SSL_NAME}.cert.p12"
     SSL_CFG_NAME="${SSL_NAME}-openssl.cnf"
-    SSL_CHAIN_CERTS_NAME="ca-chain-${SSL_NAME}.cert.pem"
+    SSL_CERTS_CHAIN_NAME="chain-${SSL_NAME}.cert.pem"
 fi
 
 SSL_KEY="${DIR_ROOT}/private/${SSL_KEY_NAME}"
 SSL_CSR="${DIR_ROOT}/csr/${SSL_CSR_NAME}"
-SSL_CERT="${DIR_ROOT}/certs/${SSL_CERT_NAME}"
+SSL_CERT_PEM="${DIR_ROOT}/certs/${SSL_CERT_PEM_NAME}"
+SSL_CERT_DER="${DIR_ROOT}/certs/${SSL_CERT_DER_NAME}"
+SSL_CERT_CRT="${DIR_ROOT}/certs/${SSL_CERT_CRT_NAME}"
+SSL_CERT_CER="${DIR_ROOT}/certs/${SSL_CERT_CER_NAME}"
+SSL_CERT_PKCS12="${DIR_ROOT}/certs/${SSL_CERT_PKCS12_NAME}"
 SSL_CFG="${DIR_ROOT}/${SSL_CFG_NAME}"
-SSL_CHAIN_CERTS="${DIR_ROOT}/certs/${SSL_CHAIN_CERTS_NAME}"
+SSL_CERTS_CHAIN="${DIR_ROOT}/certs/${SSL_CERTS_CHAIN_NAME}"
 
 CA_CFG="${CA_DIR_ROOT}/${CA_CFG_NAME}"
 _CA_CERT_ROOT_PATH="$(cat ${CA_CFG} | grep "^dir" | sed -e 's@.*=\s\(.*\)\s*#.*@\1@' | xargs)"
 _CA_CERT_FILE_PATH="$(cat ${CA_CFG} | grep "^certificate" | sed -e 's@.*=\s\(.*\)\s*#.*@\1@' -e 's@$dir/\(.*\)@\1@' | xargs)"
 CA_CERT="${_CA_CERT_ROOT_PATH}/${_CA_CERT_FILE_PATH}"
+
 
 echo ""
 echo "================================================================================"
@@ -65,22 +74,21 @@ xtrace on
 mkdir -p "${DIR_ROOT}"
 cd "${DIR_ROOT}"
 mkdir -p \
-    ${DIR_ROOT}/certs \
-    ${DIR_ROOT}/crl \
-    ${DIR_ROOT}/csr \
-    ${DIR_ROOT}/newcerts \
-    ${DIR_ROOT}/private
+    "${DIR_ROOT}/certs" \
+    "${DIR_ROOT}/crl" \
+    "${DIR_ROOT}/csr" \
+    "${DIR_ROOT}/newcerts" \
+    "${DIR_ROOT}/private"
 xtrace off
-echo "${PWD}"
 
 
 echo ""
 echo "================================================================================"
 echo "==> Creating"
 xtrace on
-chmod 700 ${DIR_ROOT}/private
-touch ${DIR_ROOT}/index.txt
-echo 1000 > ${DIR_ROOT}/serial
+chmod 700 "${DIR_ROOT}/private"
+touch "${DIR_ROOT}/index.txt"
+echo 1000 > "${DIR_ROOT}/serial"
 xtrace off
 
 
@@ -143,7 +151,7 @@ RANDFILE        = \$dir/private/.rand
 
 # The root key and root certificate.
 private_key	= \$dir/private/${SSL_KEY_NAME}   # The private key
-certificate	= \$dir/certs/${SSL_CERT_NAME} 	# The CA certificate
+certificate	= \$dir/certs/${SSL_CERT_PEM_NAME} 	# The CA certificate
 
 # For certificate revocation lists.
 crlnumber	        = \$dir/crlnumber	    # the current crl number
@@ -374,7 +382,7 @@ EOF
 
 echo ""
 echo "================================================================================"
-echo "==> Create the intermediate key"
+echo "==> Generate intermediate key"
 xtrace on
 rm -f "${SSL_KEY}"
 openssl genrsa -aes256 -out "${SSL_KEY}" 4096
@@ -384,7 +392,7 @@ xtrace off
 
 echo ""
 echo "================================================================================"
-echo "==> Create certificate signing request(COMMON NAME must be different)"
+echo "==> Generate certificate signing request(COMMON NAME must be different)"
 xtrace on
 openssl req -config "${SSL_CFG}" \
       -key "${SSL_KEY}" \
@@ -395,14 +403,14 @@ xtrace off
 
 echo ""
 echo "================================================================================"
-echo "==> Create the intermediate certificate"
+echo "==> Generate intermediate certificate"
 xtrace on
-rm -f "${SSL_CERT}"
+rm -f "${SSL_CERT_PEM}"
 openssl ca -config "${CA_CFG}" -extensions v3_intermediate_ca \
     -days 3650 -notext -md sha256 \
     -in "${SSL_CSR}" \
-    -out "${SSL_CERT}"
-chmod 444 "${SSL_CERT}"
+    -out "${SSL_CERT_PEM}"
+chmod 444 "${SSL_CERT_PEM}"
 xtrace off
 
 
@@ -410,7 +418,7 @@ echo ""
 echo "================================================================================"
 echo "==> Verify intermediate certificate"
 xtrace on
-openssl x509 -noout -text -in "${SSL_CERT}"
+openssl x509 -noout -text -in "${SSL_CERT_PEM}"
 xtrace off
 
 
@@ -418,22 +426,68 @@ echo ""
 echo "================================================================================"
 echo "==> Verify intermediate certificate against root certificate"
 xtrace on
-openssl verify -CAfile "${CA_CERT}" "${SSL_CERT}"
+openssl verify -CAfile "${CA_CERT}" "${SSL_CERT_PEM}"
 xtrace off
 
 
 echo ""
 echo "================================================================================"
-echo "==> Create the certificate chain file"
+echo "==> Generate certificate chain file"
 xtrace on
-cat "${CA_CERT}" "${SSL_CERT}" > "${SSL_CHAIN_CERTS}"
-chmod 444 "${SSL_CHAIN_CERTS}"
+rm -f "${SSL_CERTS_CHAIN}"
+cat "${CA_CERT}" "${SSL_CERT_PEM}" > "${SSL_CERTS_CHAIN}"
+chmod 444 "${SSL_CERTS_CHAIN}"
 xtrace off
 
 
 echo ""
-echo "Work was done in: ${DIR_ROOT}"
-echo "Private key: ${SSL_KEY}"
-echo "Certificate: ${SSL_CERT}"
-echo "Cert Chain:  ${SSL_CHAIN_CERTS}"
+echo "================================================================================"
+echo "==> Generate intermediate certificate(DER)"
+xtrace on
+rm -f "${SSL_CERT_DER}"
+openssl x509 -outform der -in "${SSL_CERT_PEM}" -out "${SSL_CERT_DER}"
+chmod 444 "${SSL_CERT_DER}"
+xtrace off
+
+
+echo ""
+echo "================================================================================"
+echo "==> Generate intermediate certificate(CRT)"
+xtrace on
+rm -f "${SSL_CERT_CRT}"
+openssl x509 -outform der -in "${SSL_CERT_PEM}" -out "${SSL_CERT_CRT}"
+chmod 444 "${SSL_CERT_CRT}"
+xtrace off
+
+
+echo ""
+echo "================================================================================"
+echo "==> Generate intermediate certificate(CER)"
+xtrace on
+rm -f "${SSL_CERT_CER}"
+openssl x509 -inform der -in "${SSL_CERT_DER}" -out "${SSL_CERT_CER}"
+chmod 444 "${SSL_CERT_CRT}"
+xtrace off
+
+
+echo ""
+echo "================================================================================"
+echo "==> Generate intermediate certificate(PKCS12)"
+xtrace on
+rm -f "${SSL_CERT_PKCS12}"
+openssl pkcs12 -export -out "${SSL_CERT_PKCS12}" -inkey "${SSL_KEY}" -in "${SSL_CERT_PEM}" #-certfile "${SSL_CERTS_CHAIN}"
+chmod 444 "${SSL_CERT_PKCS12}"
+xtrace off
+
+
+echo ""
+echo "================================================================================"
+echo "Work was done in:       \"${DIR_ROOT}\""
+echo "Private key:            \"${SSL_KEY}\""
+echo "Certificate(PEM):       \"${SSL_CERT_PEM}\""
+echo "Certificate(DER):       \"${SSL_CERT_DER}\""
+echo "Certificate(CRT):       \"${SSL_CERT_CRT}\""
+echo "Certificate(CER):       \"${SSL_CERT_CER}\""
+echo "Certificate(PKCS12):    \"${SSL_CERT_PKCS12}\""
+echo "Certificate Chain(PEM): \"${SSL_CERTS_CHAIN}\""
 

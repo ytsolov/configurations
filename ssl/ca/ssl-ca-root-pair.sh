@@ -27,13 +27,22 @@ if [ $(echo "${2}" | wc -w) -eq 0 ]; then
 else
     SSL_NAME="${2}"
     SSL_KEY_NAME="${SSL_NAME}.key.pem"
-    SSL_CERT_NAME="${SSL_NAME}.cert.pem"
+    SSL_CERT_PEM_NAME="${SSL_NAME}.cert.pem"
+    SSL_CERT_DER_NAME="${SSL_NAME}.cert.der"
+    SSL_CERT_CRT_NAME="${SSL_NAME}.cert.crt"
+    SSL_CERT_CER_NAME="${SSL_NAME}.cert.cer"
+    SSL_CERT_PKCS12_NAME="${SSL_NAME}.cert.p12"
     SSL_CFG_NAME="${SSL_NAME}-openssl.cnf"
 fi
 
 SSL_KEY="${DIR_ROOT}/private/${SSL_KEY_NAME}"
-SSL_CERT="${DIR_ROOT}/certs/${SSL_CERT_NAME}"
+SSL_CERT_PEM="${DIR_ROOT}/certs/${SSL_CERT_PEM_NAME}"
+SSL_CERT_DER="${DIR_ROOT}/certs/${SSL_CERT_DER_NAME}"
+SSL_CERT_CRT="${DIR_ROOT}/certs/${SSL_CERT_CRT_NAME}"
+SSL_CERT_CER="${DIR_ROOT}/certs/${SSL_CERT_CER_NAME}"
+SSL_CERT_PKCS12="${DIR_ROOT}/certs/${SSL_CERT_PKCS12_NAME}"
 SSL_CFG="${DIR_ROOT}/${SSL_CFG_NAME}"
+
 
 echo ""
 echo "================================================================================"
@@ -47,7 +56,6 @@ mkdir -p \
     "${DIR_ROOT}/newcerts" \
     "${DIR_ROOT}/private"
 xtrace off
-echo "${PWD}"
 
 
 echo ""
@@ -119,7 +127,7 @@ RANDFILE        = \$dir/private/.rand
 
 # The root key and root certificate.
 private_key	= \$dir/private/${SSL_KEY_NAME}   # The private key
-certificate	= \$dir/certs/${SSL_CERT_NAME} 	# The CA certificate
+certificate	= \$dir/certs/${SSL_CERT_PEM_NAME} 	# The CA certificate
 
 # For certificate revocation lists.
 crlnumber	        = \$dir/crlnumber	    # the current crl number
@@ -347,34 +355,85 @@ authorityKeyIdentifier=keyid,issuer
 proxyCertInfo=critical,language:id-ppl-anyLanguage,pathlen:3,policy:foo
 EOF
 
+
 echo ""
 echo "================================================================================"
-echo "==> Create the root key"
+echo "==> Generate root key"
 xtrace on
 rm -f "${SSL_KEY}"
 openssl genrsa -aes256 -out "${SSL_KEY}" 4096
 chmod 400 "${SSL_KEY}"
 xtrace off
 
+
 echo ""
 echo "================================================================================"
-echo "==> Create the root certificate"
+echo "==> Generate root certificate(PEM)"
 xtrace on
+rm -f "${SSL_CERT_PEM}"
 openssl req -config "${SSL_CFG}" \
 	-key "${SSL_KEY}" \
 	-new -x509 -days 7300 -sha256 -extensions v3_ca \
-	-out "${SSL_CERT}"
+	-out "${SSL_CERT_PEM}"
+chmod 444 "${SSL_CERT_PEM}"
 xtrace off
+
 
 echo ""
 echo "================================================================================"
-echo "==> Verify root certificate"
+echo "==> Verify root certificate(PEM)"
 xtrace on
-openssl x509 -noout -text -in "${SSL_CERT}"
+openssl x509 -noout -text -in "${SSL_CERT_PEM}"
 xtrace off
 
+
 echo ""
-echo "Work was done in: ${DIR_ROOT}"
-echo "Private key: ${SSL_KEY}"
-echo "Certificate: ${SSL_CERT}"
+echo "================================================================================"
+echo "==> Generate root certificate(DER)"
+xtrace on
+rm -f "${SSL_CERT_DER}"
+openssl x509 -outform der -in "${SSL_CERT_PEM}" -out "${SSL_CERT_DER}"
+chmod 444 "${SSL_CERT_DER}"
+xtrace off
+
+
+echo ""
+echo "================================================================================"
+echo "==> Generate root certificate(CRT)"
+xtrace on
+rm -f "${SSL_CERT_CRT}"
+openssl x509 -outform der -in "${SSL_CERT_PEM}" -out "${SSL_CERT_CRT}"
+chmod 444 "${SSL_CERT_CRT}"
+xtrace off
+
+
+echo ""
+echo "================================================================================"
+echo "==> Generate root certificate(CER)"
+xtrace on
+rm -f "${SSL_CERT_CER}"
+openssl x509 -inform der -in "${SSL_CERT_DER}" -out "${SSL_CERT_CER}"
+chmod 444 "${SSL_CERT_CRT}"
+xtrace off
+
+
+echo ""
+echo "================================================================================"
+echo "==> Generate root certificate(PKCS12)"
+xtrace on
+rm -f "${SSL_CERT_PKCS12}"
+openssl pkcs12 -export -out "${SSL_CERT_PKCS12}" -inkey "${SSL_KEY}" -in "${SSL_CERT_PEM}" #-certfile
+chmod 444 "${SSL_CERT_PKCS12}"
+xtrace off
+
+
+echo ""
+echo "================================================================================"
+echo "Work was done in:    \"${DIR_ROOT}\""
+echo "Private key:         \"${SSL_KEY}\""
+echo "Certificate(PEM):    \"${SSL_CERT_PEM}\""
+echo "Certificate(DER):    \"${SSL_CERT_DER}\""
+echo "Certificate(CRT):    \"${SSL_CERT_CRT}\""
+echo "Certificate(CER):    \"${SSL_CERT_CER}\""
+echo "Certificate(PKCS12): \"${SSL_CERT_PKCS12}\""
 
