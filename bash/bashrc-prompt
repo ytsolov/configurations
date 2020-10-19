@@ -81,8 +81,24 @@ function fdate() {
     date +'%T:%N' | cut -c 1-12
 }
 
+function strip_string() {
+    local string="${1}"
+    local printable=$(tr -dc '[[:print:]]' <<< "${string}")
+    local stripped=$(echo "${printable}" | sed 's@\[[^m]*m@@g')
+    echo "${stripped}"
+}
+
 function set_ps1() {
-    export PS1='${debian_chroot:+($debian_chroot)}''$(ps_time):$(ps_user_host):$(ps_path "\w") $(ps_lucky_charm) $(ps_git)\n$(ps_return) '
+    local -n content="${1}"
+    local lines=(
+        '${debian_chroot:+($debian_chroot)}'"$(ps_time):$(ps_user_host):$(ps_path "\w") $(ps_lucky_charm) $(ps_git)"
+        "$(ps_return)"
+    )
+    export PS1="${lines[0]}\n${lines[1]}"
+    content=()
+    for index in ${!lines[@]}; do
+        content[${index}]="${lines[${index}]}"
+    done
 }
 
 if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
@@ -92,13 +108,25 @@ else
 fi
 
 function prompt_command() {
+    local LINES
     do_first_time
-    set_ps1
+    ps_init
+    set_ps1 LINES
+    local lead_line=$(strip_string "${LINES[$(expr ${#LINES[@]}-1)]}")
+    LEAD_LINE_LENGTH=${#lead_line}
 }
 
+CURSOR_POSITION=()
+LEAD_LINE_LENGTH=-1
 PROMPT_COMMAND='prompt_command'
 
 ###############################
+function ps_init() {
+    local cursor_position
+    cursor_position cursor_position
+    CURSOR_POSITION="${cursor_position}"
+}
+
 function ps_time() {
     local exit_status="$?"
     local brown
@@ -202,13 +230,22 @@ function ps_return() {
         cend="${FCOLOR_RESET}"
     fi
 
+    local content
     if [ ${exit_status} -eq 0 ]; then
-        echo -ne "${green}(${exit_status})${cend} ${FTPUT_BOLD}\$${FTPUT_RESET}"
+        content="${green}(${exit_status})${cend} ${FTPUT_BOLD}\$${FTPUT_RESET} "
     else
-        echo -ne "${red}(${exit_status})${cend} ${FTPUT_BOLD}\$${FTPUT_RESET}"
+        content="${red}(${exit_status})${cend} ${FTPUT_BOLD}\$${FTPUT_RESET} "
     fi
 
+    echo -ne "${content}"
+
     return ${exit_status}
+}
+
+function cursor_position() { 
+    local -n position="${1}"
+    IFS='[;' read -p $'\e[6n' -d R -a pos -rs || echo "failed with error: $? ; ${pos[*]}"
+    position=(${pos[1]} ${pos[2]})
 }
 
 ###############################
@@ -233,13 +270,25 @@ preexec () {
     #printf "${FCOLOR_RED}${end_time}${FCOLOR_RESET}"
     #printf "\033[u"                             # restore cursor position
 
+    # ISSUES:
+    #  * If command is multiline wrong line is updated
     # Overwrite existing time with the time of command execution
+    #printf "\033[s"                             # save cursor position
+    #printf "\033[2A"                            # move cursor one line up
+    #printf "\033[0C" # move cursor at the end
+    #printf "${blue}${end_time}${cend}"
+    #printf "\033[u"                             # restore cursor position
+
+
+    # Overwrite existing time with the time of command execution
+    local offset=$(( (${LEAD_LINE_LENGTH} + ${#BASH_COMMAND} - 1) / COLUMNS + 2 ))
     printf "\033[s"                             # save cursor position
-    printf "\033[2A"                            # move cursor one line up
-    printf "\033[0C" # move cursor at the end
+    printf "\033[${offset}A"                    # move cursor one line up
+    printf "\033[0C"                            # move cursor at the end
     printf "${blue}${end_time}${cend}"
     printf "\033[u"                             # restore cursor position
 }
+
 preexec_invoke_exec () {
     [ -n "$COMP_LINE" ] && return  # do nothing if completing
     [ "$BASH_COMMAND" = "$PROMPT_COMMAND" ] && return # don't cause a preexec for $PROMPT_COMMAND
