@@ -47,7 +47,7 @@ colorscheme desert
 "colorscheme peachpuff
 "colorscheme zellner
 
-set grepprg=grep\ -n\ $*\ --include=*.{c,cpp,C,cxx,h,hpp,ipp,py,go}\ /dev/null
+set grepprg=grep\ -n\ $*\ --include=*.{c,cpp,C,cxx,h,hpp,ipp,py,go,cs,js,json}\ /dev/null
 set tags+=./tags
 set tags+=;home
 
