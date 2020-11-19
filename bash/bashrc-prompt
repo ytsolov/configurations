@@ -90,9 +90,10 @@ function strip_string() {
 
 function set_ps1() {
     local -n content="${1}"
+    local exit_status=${2}
     local lines=(
         '${debian_chroot:+($debian_chroot)}'"$(ps_time):$(ps_user_host):$(ps_path "\w") $(ps_lucky_charm) $(ps_git)"
-        "$(ps_return)"
+        "$(ps_return ${exit_status})"
     )
     export PS1="${lines[0]}\n${lines[1]}"
     content=()
@@ -108,10 +109,11 @@ else
 fi
 
 function prompt_command() {
+    local EXIT_STATUS=$?
     local LINES
     do_first_time
     ps_init
-    set_ps1 LINES
+    set_ps1 LINES ${EXIT_STATUS}
     local lead_line=$(strip_string "${LINES[$(expr ${#LINES[@]}-1)]}")
     LEAD_LINE_LENGTH=${#lead_line}
 }
@@ -219,7 +221,7 @@ function ps_git() {
 }
 
 function ps_return() {
-    local exit_status="$?"
+    local exit_status="${1}"
     local green
     local red
     local cend
