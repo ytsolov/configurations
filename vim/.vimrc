@@ -240,14 +240,16 @@ if s:use_youcompleteme == 1
     "let g:ycm_server_use_vim_stdout = 1
     let g:ycm_server_log_level = 'info'
     nnoremap <C-q> :YcmForceCompileAndDiagnostics<CR>
-    nnoremap <leader>def    :YcmCompleter GoToDefinition<CR>
-    nnoremap <leader>decl   :YcmCompleter GoToDeclaration<CR>
-    nnoremap <leader>go     :YcmCompleter GoTo<CR>
-    nnoremap <leader>type   :YcmCompleter GetType<CR>
-    nnoremap <leader>parent :YcmCompleter GetParent<CR>
-    nnoremap <leader>fix    :YcmCompleter FixIt<CR>
-    nnoremap <leader>format :YcmCompleter Format<CR>
-    nnoremap <leader>impl   :YcmCompleter GoToImplementation<CR>
+    nnoremap <leader>inc       :YcmCompleter GoToInclude<CR>
+    nnoremap <leader>decl      :YcmCompleter GoToDeclaration<CR>
+    nnoremap <leader>def       :YcmCompleter GoToDefinition<CR>
+    nnoremap <leader>impl      :YcmCompleter GoToImplementation<CR>
+    nnoremap <leader>type      :YcmCompleter GoToType<CR>
+    nnoremap <leader>go        :YcmCompleter GoTo<CR>
+    nnoremap <leader>gettype   :YcmCompleter GetType<CR>
+    nnoremap <leader>getparent :YcmCompleter GetParent<CR>
+    nnoremap <leader>fix       :YcmCompleter FixIt<CR>
+    nnoremap <leader>format    :YcmCompleter Format<CR>
 
     let s:gowinview={}
     autocmd BufWritePre *.go let s:gowinview=winsaveview() | execute 'YcmCompleter Format'
