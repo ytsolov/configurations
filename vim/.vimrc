@@ -47,7 +47,7 @@ colorscheme desert
 "colorscheme peachpuff
 "colorscheme zellner
 
-set grepprg=grep\ -n\ $*\ --include=*.{c,cpp,C,cxx,h,hpp,ipp,py,go,cs,js,json}\ /dev/null
+set grepprg=grep\ -n\ $*\ --include=*.{c,cpp,C,cxx,h,hpp,ipp,py,go,cs,js,json,txt}\ /dev/null
 set tags+=./tags
 set tags+=;home
 
@@ -157,7 +157,7 @@ if executable("go")
     " Execute: go get -u golang.org/x/lint/golint
     if isdirectory($GOPATH . "/src/golang.org/x/lint/misc/vim")
         set rtp+=$GOPATH/src/golang.org/x/lint/misc/vim
-        autocmd BufWritePost,FileWritePost *.go execute 'Lint' | cwindow
+        "autocmd BufWritePost,FileWritePost *.go execute 'Lint' | lwindow
     endif
 endif
 
@@ -238,19 +238,20 @@ if s:use_youcompleteme == 1
         let g:ycm_global_ycm_extra_conf           = '/home/ytsolov/.ycm_extra_conf.py'
     endif
     "let g:ycm_server_use_vim_stdout = 1
-    let g:ycm_server_log_level = 'debug'
+    let g:ycm_server_log_level = 'info'
     nnoremap <C-q> :YcmForceCompileAndDiagnostics<CR>
     nnoremap <leader>def    :YcmCompleter GoToDefinition<CR>
-    nnoremap <leader>dec    :YcmCompleter GoToDeclaration<CR>
+    nnoremap <leader>decl   :YcmCompleter GoToDeclaration<CR>
     nnoremap <leader>go     :YcmCompleter GoTo<CR>
     nnoremap <leader>type   :YcmCompleter GetType<CR>
     nnoremap <leader>parent :YcmCompleter GetParent<CR>
     nnoremap <leader>fix    :YcmCompleter FixIt<CR>
     nnoremap <leader>format :YcmCompleter Format<CR>
+    nnoremap <leader>impl   :YcmCompleter GoToImplementation<CR>
 
     let s:gowinview={}
     autocmd BufWritePre *.go let s:gowinview=winsaveview() | execute 'YcmCompleter Format'
-    autocmd BufWritePost *.go cwindow | call winrestview(s:gowinview)
+    "autocmd BufWritePost *.go cwindow | call winrestview(s:gowinview)
 endif
 
 let s:use_pydiction=0
@@ -284,6 +285,7 @@ endif
 " endif
 
 autocmd FileType c,cpp set cindent | set foldmethod=syntax
+autocmd FileType go set noexpandtab
 autocmd FileType html set omnifunc=htmlcomplete#CompleteTags
 autocmd FileType make set noexpandtab
 autocmd FileType cmake set expandtab | set foldmethod=indent
