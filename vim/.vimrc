@@ -48,8 +48,8 @@ colorscheme desert
 "colorscheme zellner
 
 set grepprg=grep\ -n\ $*\ --include=*.{c,cpp,C,cxx,h,hpp,ipp,py,go,cs,js,json,txt}\ /dev/null
-set tags+=./tags
-set tags+=;home
+set tags+=./tags;home
+"set tags+=;home
 
 
 " This tells Vim to keep a backup copy of a file when overwriting it.  But not
@@ -130,6 +130,8 @@ if s:use_vundle == 1
     "#Plugin 'file://$HOME/.vim/bundle/YouCompleteMe'
     Plugin 'https://github.com/ycm-core/YouCompleteMe.git'
 
+    Plugin 'https://github.com/MTDL9/vim-log-highlighting'
+
     "" " let Vundle manage Vundle, required
     "" Plugin 'gmarik/Vundle.vim'
 
@@ -151,6 +153,14 @@ if s:use_vundle == 1
 
     " All of your Plugins must be added before the following line
     call vundle#end()            " required
+
+    au Syntax log syn keyword logLevelCritical F
+    au Syntax log syn keyword logLevelError E
+    au Syntax log syn keyword logLevelWarning W
+    au Syntax log syn keyword logLevelNotice N
+    au Syntax log syn keyword logLevelInfo I
+    au Syntax log syn keyword logLevelDebug D
+    au Syntax log syn keyword logLevelTrace T
 endif
 
 if executable("go")
@@ -246,6 +256,7 @@ if s:use_youcompleteme == 1
     nnoremap <leader>impl      :YcmCompleter GoToImplementation<CR>
     nnoremap <leader>type      :YcmCompleter GoToType<CR>
     nnoremap <leader>go        :YcmCompleter GoTo<CR>
+    nnoremap <leader>usage     :YcmCompleter GoToReferences<CR>
     nnoremap <leader>gettype   :YcmCompleter GetType<CR>
     nnoremap <leader>getparent :YcmCompleter GetParent<CR>
     nnoremap <leader>fix       :YcmCompleter FixIt<CR>
